@@ -37,6 +37,8 @@
 #' @method plot DIFtree
 #' @export
 #' @importFrom plotrix draw.ellipse
+#' @importFrom grDevices grey
+#' @importFrom graphics lines plot.new plot.window points rect text 
 
 plot.DIFtree <-
 function(x,item,cex.lines=2,cex.main=1,cex.branches=1,cex.coefs=1,title=NULL,...){
@@ -61,14 +63,12 @@ function(x,item,cex.lines=2,cex.main=1,cex.branches=1,cex.coefs=1,title=NULL,...
       endnodes      <- list()
       endnodes[[1]] <- 1
       for(j in 1:nrow(info)){
-        level <- info[j,"level"]
-        node  <- info[j,"node"]
         endnodes[[j+1]] <- numeric(length=(j+1))
-        what <- max(endnodes[[j]])+c(1,2)
-        delete <- endnodes[[level]][node]
+        what <- c(info[j,"left"],info[j,"right"])
+        delete <- info[j,"number"]
         where  <- which(endnodes[[j]]==delete)
         endnodes[[j+1]][c(where,where+1)] <- what
-        endnodes[[j+1]][-c(where,where+1)] <- endnodes[[j]][-which(endnodes[[j]]==delete)]
+        endnodes[[j+1]][-c(where,where+1)] <- endnodes[[j]][-where]
       }
       endnodes <- endnodes[[length(endnodes)]]
   

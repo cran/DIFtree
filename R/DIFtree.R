@@ -6,7 +6,7 @@
 #' The method of item focussed recursive partitioning is described in Tutz and Berger (2015).
 #' 
 #' @param Y Matrix or Data.frame of binary 0/1 response (rows correspond to persons, columns correspond to items)
-#' @param X Data.frame of covariates (rows correspond to persons, columns correspond to covariates)
+#' @param X Data.frame of (not scaled) covariates (rows correspond to persons, columns correspond to covariates)
 #' @param alpha global significance level for the permutation tests
 #' @param nperm number of permutations for the permutation tests
 #' @param trace If true, information about the estimation progress is printed
@@ -32,6 +32,7 @@
 #' \item{beta_hat_nodif}{Estimated item difficulties for items without DIF} 
 #' \item{beta_hat_dif}{List of estimated item difficulties for items with DIF. 
 #' Each element contains diffculties for one item.}
+#' \item{pvalues}{P-values of each permutation test during the estimation process}
 #' \item{Y}{Response matrix used in the estimation process}
 #' \item{X}{Model matrix used in the estimation process}
 #' \item{persons}{Number of persons} 
@@ -63,7 +64,7 @@
 #' @exportClass DIFtree
 #' @export
 #' @importFrom penalized penalized 
-#'
+#' @importFrom stats binomial coef deviance formula glm predict quantile 
 
 DIFtree <-
 function(Y, X, alpha, nperm, trace=FALSE, penalize=FALSE){
@@ -83,6 +84,10 @@ function(Y, X, alpha, nperm, trace=FALSE, penalize=FALSE){
   }
   if(any(sapply(1:ncol(X),function(j) class(X[,j]))=="logical")){
     stop("variable of class 'logical' is not useful")
+  }
+  if(any(sapply(1:ncol(X), function(j) {
+    is.numeric(X[,j]) && (mean(X[,j])<10e-6 | var(X[,j])==1)}))){
+    stop("Don't use scaled covariates")
   }
   
   npersons <- nrow(Y)           # Anzahl an Beobachtungen 
@@ -119,7 +124,7 @@ function(Y, X, alpha, nperm, trace=FALSE, penalize=FALSE){
   ip_design <- -1*diag(nitems)                  # Itemparameter 
   ip_design <- ip_design[rep(1:nrow(ip_design),times=npersons),]
   
-  dm_rasch <- cbind(pp_design,ip_design)               # Designmatrix fuer Rasch-Modell zusammenf??gen 
+  dm_rasch <- cbind(pp_design,ip_design)               # Designmatrix fuer Rasch-Modell zusammenfuegen 
   
   names_rasch    <- c(paste("theta",1:(npersons-1),sep=""),paste("beta",1:nitems,sep=""))
   colnames(dm_rasch) <- names_rasch      # Variablennamen vergeben 
@@ -186,7 +191,9 @@ function(Y, X, alpha, nperm, trace=FALSE, penalize=FALSE){
   devs          <- c()
   crit          <- c()
   splits        <- c()
+  pvalues       <- c() 
   ip            <- list()
+  vars_evtl     <- list()
   splits_evtl   <- list()
   which_obs     <- list()
   numbers       <- list()
@@ -198,6 +205,7 @@ function(Y, X, alpha, nperm, trace=FALSE, penalize=FALSE){
   numbers[[1]]     <- lapply(1:nitems,function(j) 1)
   which_obs[[1]]   <- lapply(1:nitems,function(j) matrix(1:npersons,nrow=1))
   splits_evtl[[1]] <- lapply(1:nitems,function(j) lapply(1:nvar, function(var) matrix(1:n_s[var],nrow=1)))
+  vars_evtl[[1]]   <- lapply(1:nitems,function(j) nvar)
   ip[[1]]          <- lapply(1:nitems,function(j) paste0("beta",j))
   help0            <- formula(paste("y~",help_p,"+",paste0(unlist(ip[[1]]),collapse="+"),"-1"))
   dat0             <- data.frame(y,dm_rasch)
@@ -239,8 +247,9 @@ function(Y, X, alpha, nperm, trace=FALSE, penalize=FALSE){
   design_upper <- designlists(DM_kov)[[1]]
   design_lower <- designlists(DM_kov)[[2]]
   sig   <- TRUE
+  anysplit <- TRUE
   
-  while(sig){
+  while(sig & anysplit){
     
     # compute all models
     dv <- lapply(1:nvar,function(var) {
@@ -259,6 +268,11 @@ function(Y, X, alpha, nperm, trace=FALSE, penalize=FALSE){
     item     <- which.max(lapply(1:nitems, function(j) max(dv[[variable]][[j]])))
     split    <- as.numeric(which(dv[[variable]][[item]]==max(dv[[variable]][[item]]),arr.ind=TRUE)[,1])
     knoten   <- as.numeric(which(dv[[variable]][[item]]==max(dv[[variable]][[item]]),arr.ind=TRUE)[,2])
+    if(length(split)>1){
+      split  <- split[1]
+      knoten <- knoten[1]
+      warning(paste("Maximum in iteration ",count," not uniquely defined"))
+    }
     ip_old   <- ip[[count]][[item]][knoten]
     level    <- length(strsplit(ip_old,":")[[1]])
     number   <- numbers[[count]][[item]][knoten]
@@ -284,10 +298,11 @@ function(Y, X, alpha, nperm, trace=FALSE, penalize=FALSE){
     }
     
     # test decision 
-    crit_val <- quantile(dev,1-(alpha/nvar))
+    crit_val <- quantile(dev,1-(alpha/vars_evtl[[count]][[item]][knoten]))
     proof    <- max(dv[[variable]][[item]]) > crit_val
     devs[count]   <- max(dv[[variable]][[item]])
     crit[count]   <- crit_val
+    pvalues[count] <- length(which(dev>max(dv[[variable]][[item]])))/nperm
     
     if(proof){
       
@@ -299,7 +314,7 @@ function(Y, X, alpha, nperm, trace=FALSE, penalize=FALSE){
       help8 <- formula(paste("y~",help_p,"+",help5,"+",help7,"-1"))
       
       ######################
-      if(level>2){
+      if(level>1){
         help_kn4 <- lu(c(),1,level-1,c())
         help_kn5 <- unlist(strsplit(help_kn2,""))
         help_kn6 <- paste0(help_kn5[which(help_kn5=="_")+1],collapse="")
@@ -335,6 +350,22 @@ function(Y, X, alpha, nperm, trace=FALSE, penalize=FALSE){
       }
       splits_evtl[[count+1]][[item]][[variable]][knoten,splits_evtl[[count+1]][[item]][[variable]][knoten,]>=split] <- NA 
       splits_evtl[[count+1]][[item]][[variable]][(knoten+1),splits_evtl[[count+1]][[item]][[variable]][(knoten+1),]<=split] <- NA
+      
+      # any split? 
+      anysplit <- !all(is.na(unlist(splits_evtl[[count+1]])))
+      
+      # passe vars_evtl an 
+      vars_evtl[[count+1]]                             <- vars_evtl[[count]]
+      vars_evtl[[count+1]][[item]]                     <- rep(0,n_knots)
+      vars_evtl[[count+1]][[item]][c(knoten,knoten+1)] <- rep(vars_evtl[[count]][[item]][knoten],2)
+      vars_evtl[[count+1]][[item]][-c(knoten,knoten+1)]<- vars_evtl[[count]][[item]][-knoten]
+      
+      if(length(which(!is.na(splits_evtl[[count+1]][[item]][[variable]][knoten,])))==0){ 
+        vars_evtl[[count+1]][[item]][knoten] <- vars_evtl[[count+1]][[item]][knoten]-1 
+      }
+      if(length(which(!is.na(splits_evtl[[count+1]][[item]][[variable]][knoten+1,])))==0){ 
+        vars_evtl[[count+1]][[item]][knoten+1] <- vars_evtl[[count+1]][[item]][knoten+1]-1 
+      }
       
       # passe which_obs an 
       which_obs[[count+1]]                               <- which_obs[[count]]
@@ -394,7 +425,7 @@ function(Y, X, alpha, nperm, trace=FALSE, penalize=FALSE){
   
     help9 <- cumsum(c(0,(n_levels-1)))
     colnames(splits) <- c("var","item","split","level","node","number","left","right")
-    splits <- data.frame(cbind(splits[,1:5],"variable"=rep(NA,nrow(splits)),"threshold"=rep(NA,nrow(splits)),splits[,6:8]))
+    splits <- data.frame(cbind(splits[,1:5,drop=FALSE],"variable"=rep(NA,nrow(splits)),"threshold"=rep(NA,nrow(splits)),splits[,6:8,drop=FALSE]))
     for(i in 1:nrow(splits)){
       splits[i,6] <- colnames(DM_kov)[splits[i,1]]
       v2 <- lapply(1:nvar,function(j) ordered_values[[j]][-length(ordered_values[[j]])])
@@ -412,6 +443,7 @@ function(Y, X, alpha, nperm, trace=FALSE, penalize=FALSE){
                     "theta_hat"=theta_hat,
                     "beta_hat_nodif"=beta_hat_nodif,
                     "beta_hat_dif"=beta_hat_dif,
+                    "pvalues"=pvalues,
                     "Y"=Y,
                     "X"=DM_kov,
                     "persons"=npersons,
@@ -475,14 +507,12 @@ summary.DIFtree <-
         endnodes[[i]]      <- list()
         endnodes[[i]][[1]] <- 1
         for(j in 1:nrow(info)){
-          level <- info[j,"level"]
-          node  <- info[j,"node"]
           endnodes[[i]][[j+1]] <- numeric(length=(j+1))
-          what <- max(endnodes[[i]][[j]])+c(1,2)
-          delete <- endnodes[[i]][[level]][node]
+          what <- c(info[j,"left"],info[j,"right"])
+          delete <- info[j,"number"]
           where  <- which(endnodes[[i]][[j]]==delete)
           endnodes[[i]][[j+1]][c(where,where+1)] <- what
-          endnodes[[i]][[j+1]][-c(where,where+1)] <- endnodes[[i]][[j]][-which(endnodes[[i]][[j]]==delete)]
+          endnodes[[i]][[j+1]][-c(where,where+1)] <- endnodes[[i]][[j]][-where]
         }
       }
       names(beta_hat_dif) <- paste("Item", dif_items)

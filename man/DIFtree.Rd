@@ -15,7 +15,7 @@ DIFtree(Y, X, alpha, nperm, trace = FALSE, penalize = FALSE)
 \arguments{
 \item{Y}{Matrix or Data.frame of binary 0/1 response (rows correspond to persons, columns correspond to items)}
 
-\item{X}{Data.frame of covariates (rows correspond to persons, columns correspond to covariates)}
+\item{X}{Data.frame of (not scaled) covariates (rows correspond to persons, columns correspond to covariates)}
 
 \item{alpha}{global significance level for the permutation tests}
 
@@ -38,6 +38,7 @@ An object of class \code{"DIFtree"} is a list containing the following component
 \item{beta_hat_nodif}{Estimated item difficulties for items without DIF}
 \item{beta_hat_dif}{List of estimated item difficulties for items with DIF.
 Each element contains diffculties for one item.}
+\item{pvalues}{P-values of each permutation test during the estimation process}
 \item{Y}{Response matrix used in the estimation process}
 \item{X}{Model matrix used in the estimation process}
 \item{persons}{Number of persons}
