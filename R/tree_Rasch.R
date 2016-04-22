@@ -26,45 +26,43 @@ function(y,
   names_rasch    <- c(paste("theta",1:(npersons-1),sep=""),paste("beta",1:nitems,sep=""))
   colnames(dm_rasch) <- names_rasch      
   
-  # function to build designs 
-  designlists <- function(DM_kov){
-    
-    design_help_upper <- lapply(1:nvar, function(j){
-      sapply(1:(n_levels[j]-1),function(k) { ifelse(DM_kov[,j] > ordered_values[[j]][k],1,0)})
-    })
-    
-    design_help_lower <- lapply(1:nvar, function(j){
-      sapply(1:(n_levels[j]-1),function(k) { ifelse(DM_kov[,j] > ordered_values[[j]][k],0,1)})
-    })
-    
-    v <- lapply(1:nvar,function(j) 1:(n_levels[j]-1)) 
-    w <- lapply(1:nvar, function(j) rep(paste0("s",j),n_s[j]))
-    
-    design_upper <- lapply(1:nitems, function(j) {
+  # functions to build design 
+  thresholds <- lapply(1:nvar, function(j) ordered_values[[j]][-length(ordered_values[[j]])])
+  
+  v <- lapply(1:nvar,function(j) 1:(n_levels[j]-1)) 
+  w <- lapply(1:nvar, function(j) rep(paste0("s",j),n_s[j]))
+  
+  design_one  <- function(x,threshold,upper){
+    if(upper){
+      ret <- ifelse(x > threshold,1,0)
+    } else{
+      ret <- ifelse(x > threshold,0,1)
+    }
+    return(ret)
+  }
+  
+  design <- function(x,thresholds,upper){
+    ret <- sapply(thresholds, function(j) design_one(x,j,upper))
+    return(ret)
+  }
+  
+  whole_design <- function(X,var,item,thresholds,upper=TRUE){
+    design_tree <- matrix(0,nrow=nitems*npersons,ncol=length(thresholds[[var]]))
+    rows        <- seq(item,(nitems*npersons),by=nitems)
+    design_tree[rows,] <- design(X[,var],thresholds[[var]],upper)
+    z <- rep(paste0("_u",item),length(thresholds[[var]]))
+    colnames(design_tree) <- paste0(w[[var]],v[[var]],z)
+    return(design_tree)
+  }
+  
+  designlists <- function(X,thresholds,upper=TRUE){
+    ret <- lapply(1:nitems, function(j){
       lapply(1:nvar, function(var){
-        design_tree <- matrix(0,nrow=nitems*npersons,ncol=ncol(design_help_upper[[var]]))
-        rows        <- seq(j,(nitems*npersons),by=nitems)
-        design_tree[rows,] <- design_help_upper[[var]]
-        z <- rep(paste0("_u",j),ncol(design_help_upper[[var]]))
-        colnames(design_tree) <- paste0(w[[var]],v[[var]],z)
-        return(design_tree)
+        whole_design(X,var,j,thresholds,upper)
       })
     })
     
-    v <- lapply(1:nvar,function(j) 1:(n_levels[j]-1)) 
-    w <- lapply(1:nvar, function(j) rep(paste0("s",j),n_s[j]))
-    
-    design_lower <- lapply(1:nitems, function(j) {
-      lapply(1:nvar, function(var){
-        design_tree <- matrix(0,nrow=nitems*npersons,ncol=ncol(design_help_lower[[var]]))
-        rows        <- seq(j,(nitems*npersons),by=nitems)
-        design_tree[rows,] <- design_help_lower[[var]]
-        z <- rep(paste0("_l",j),ncol(design_help_lower[[var]]))
-        colnames(design_tree) <- paste0(w[[var]],v[[var]],z)
-        return(design_tree)
-      })
-    }) 
-    return(list(design_upper,design_lower))
+    return(ret)
   }
   
   #########################################################################################
@@ -95,8 +93,8 @@ function(y,
   mod0             <- mod_potential[[1]] <- glm(help0,family=binomial(link="logit"),data=dat0)
   start            <- predict(mod0)
   
-  design_upper <- designlists(DM_kov)[[1]]
-  design_lower <- designlists(DM_kov)[[2]]
+  design_upper <- designlists(DM_kov,thresholds)
+  design_lower <- designlists(DM_kov,thresholds,upper=FALSE)
   sig   <- TRUE
   anysplit <- TRUE
   
@@ -171,8 +169,10 @@ function(y,
       obs_aktuell <- obs_aktuell[!is.na(obs_aktuell)]
       DM_kov_perm <- DM_kov
       DM_kov_perm[obs_aktuell,variable] <- sample(DM_kov_perm[obs_aktuell,variable],length(obs_aktuell))
-      design_upper_perm      <- designlists(DM_kov_perm)[[1]]
-      design_lower_perm      <- designlists(DM_kov_perm)[[2]]
+      design_upper_perm      <- design_upper
+      design_upper_perm[[item]][[variable]] <- whole_design(DM_kov_perm,variable,item,thresholds)
+      design_lower_perm      <- design_lower
+      design_lower_perm[[item]][[variable]] <- whole_design(DM_kov_perm,variable,item,thresholds,upper=FALSE)
       dv_perm <- allmodels(item,variable,knoten,design_lower_perm,design_upper_perm)
       dev[perm] <- max(dv_perm)
       if(trace){

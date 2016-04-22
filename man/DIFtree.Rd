@@ -5,8 +5,9 @@
 \alias{print.DIFtree}
 \title{Item Focused Trees for the Identification of Items in Differential Item Functioning}
 \usage{
-DIFtree(Y, X, model = c("Rasch", "Logistic"), type = "udif", alpha, nperm,
-  trace = FALSE, penalize = FALSE, ...)
+DIFtree(Y, X, model = c("Rasch", "Logistic"), type = c("udif", "dif",
+  "nudif"), alpha = 0.05, nperm = 1000, trace = FALSE, penalize = FALSE,
+  ...)
 
 \method{print}{DIFtree}(x, ...)
 }
@@ -28,9 +29,9 @@ For \code{"Rasch"} model only uniform DIF can be modelled and therefore \code{ty
 
 \item{penalize}{If true, a small ridge penalty is added to ensure existence of model parameters; only for \code{"Rasch"} model.}
 
-\item{x}{Object of class \code{"DIFtree"}}
-
 \item{...}{Further arguments passed to or from other methods}
+
+\item{x}{Object of class \code{"DIFtree"}}
 }
 \value{
 Object of class \code{"DIFtree"}. 

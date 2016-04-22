@@ -4,14 +4,25 @@ DIFtree.default <-
 function(Y,
                             X,
                             model=c("Rasch","Logistic"),
-                            type="udif",
-                            alpha,
-                            nperm,
+                            type=c("udif","dif","nudif"),
+                            alpha=0.05,
+                            nperm=1000,
                             trace=FALSE,
                             penalize=FALSE,
                             ...){
-
+  
   # check input 
+  if(missing(Y)){
+    stop("argument 'Y' is missing, with no default")
+  }
+  if(missing(X)){
+    stop("argument 'X' is missing, with no default")
+  }
+  
+  model <- match.arg(model)
+  type  <- match.arg(type)
+  
+  # varify input 
   if(!all(as.vector(t(Y)) %in% c(0,1))){
     stop("Y must be a binary 0/1 matrix")
   }
@@ -54,14 +65,6 @@ function(Y,
   
   n_levels <- sapply(1:nvar, function(j) length(ordered_values[[j]]))
   n_s      <- n_levels-1
-  
-  # check model specifications
-  if(!(model %in% c("Rasch","Logistic"))){
-    stop(paste("Model",model,"undefined!"))
-  }
-  if(!(type %in% c("udif","dif","nudif"))){
-    stop(paste("Type",type,"undefined!"))
-  }
   
   # call functions
   if(model=="Rasch"){

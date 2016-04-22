@@ -12,9 +12,9 @@
 \arguments{
 \item{object}{Object of class \code{\link[DIFtree]{DIFtree}}}
 
-\item{x}{Object of class \code{\link[DIFtree]{summary.DIFtree}}}
-
 \item{...}{Further arguments passed to or from other methods}
+
+\item{x}{Object of class \code{\link[DIFtree]{summary.DIFtree}}}
 }
 \value{
 Object of class \code{"summary.DIFtree"}. 

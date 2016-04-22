@@ -94,9 +94,9 @@ DIFtree <-
 function(Y,
                     X,
                     model=c("Rasch","Logistic"),
-                    type="udif",
-                    alpha,
-                    nperm,
+                    type=c("udif","dif","nudif"),
+                    alpha=0.05,
+                    nperm=1000,
                     trace=FALSE,
                     penalize=FALSE,
                     ...){
