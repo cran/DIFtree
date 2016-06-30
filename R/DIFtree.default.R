@@ -38,8 +38,8 @@ function(Y,
   if(any(sapply(1:ncol(X),function(j) class(X[,j]))=="logical")){
     stop("variable of class 'logical' is not useful")
   }
-  if(any(sapply(1:ncol(X), function(j) {
-    is.numeric(X[,j]) && (mean(X[,j])<10e-6 | var(X[,j])==1)}))){
+  if(all(sapply(1:ncol(X), function(j) {
+    is.numeric(X[,j]) && (isTRUE(all.equal(mean(X[,j]),0)) & isTRUE(all.equal(var(X[,j]),1)))}))){
     stop("Don't use scaled covariates")
   }
   
