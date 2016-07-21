@@ -50,7 +50,7 @@ function(y,
     design_tree <- matrix(0,nrow=nitems*npersons,ncol=length(thresholds[[var]]))
     rows        <- seq(item,(nitems*npersons),by=nitems)
     design_tree[rows,] <- design(X[,var],thresholds[[var]],upper)
-    z <- rep(paste0("_u",item),length(thresholds[[var]]))
+    z <- rep(paste0(ifelse(upper,"_u","_l"),item),length(thresholds[[var]]))
     colnames(design_tree) <- paste0(w[[var]],v[[var]],z)
     return(design_tree)
   }
