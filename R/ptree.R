@@ -57,7 +57,7 @@ function(info,
   title(title,cex.main=cex.main)
   
   # add estimates
-  params_hat <- round(params,3)
+  params_hat <- format(round(params,3),nsmall=3)
   points_params <- unique(hilfspunkte[[n_levels+1]])
   points_params[,2] <- points_params[,2]-0.2
   for(i in 1:length(params_hat)){

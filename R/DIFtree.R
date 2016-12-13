@@ -87,7 +87,7 @@
 #' @exportClass DIFtree
 #' @export
 #' @importFrom penalized penalized 
-#' @importFrom stats binomial coef deviance formula glm predict quantile var
+#' @importFrom stats binomial coef deviance formula glm predict quantile var coefficients
 
 
 DIFtree <-
@@ -111,9 +111,9 @@ print.DIFtree <-
   function(x, # object of class DIFtree 
            ...){
     
-    model <- which(c("Rasch","Logistic") %in% paste(x$call))
+    model <- which(c("Rasch","Logistic")==x$model)
     if(model==2){
-      type <- which(c("udif","dif","nudif") %in% paste(x$call))
+      type <- which(c("udif","dif","nudif")==x$type)
     } else{
       type <- 1
     }

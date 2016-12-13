@@ -49,9 +49,9 @@ function(object, # object of class DIFtree
   
   to_return <- list(call=object$call)
   
-  model <- which(c("Rasch","Logistic") %in% paste(object$call))
+  model <- which(c("Rasch","Logistic")==object$model)
   if(model==2){
-    type <- which(c("udif","dif","nudif") %in% paste(object$call))
+    type <- which(c("udif","dif","nudif")==object$type)
   } else{
     type <- 1
   }
@@ -65,6 +65,8 @@ function(object, # object of class DIFtree
   }
   to_return$stats  <- overview 
   to_return$nosplits <- nos  
+  to_return$model <- object$model
+  to_return$type  <- object$type
 
   class(to_return) <- "summary.DIFtree"
   to_return
@@ -79,9 +81,9 @@ print.summary.DIFtree <-
   function(x, # object of class summary.DIFtree 
            ...){
     
-    model <- which(c("Rasch","Logistic") %in% paste(x$call))
+    model <- which(c("Rasch","Logistic")==x$model)
     if(model==2){
-      type <- which(c("udif","dif","nudif") %in% paste(x$call))
+      type <- which(c("udif","dif","nudif")==x$type)
     } else{
       type <- 1
     }

@@ -50,6 +50,13 @@ function(object, # object of class DIFtree
                             newdata,...){
   
   # check input 
+  if(missing(item)){
+    stop("argument \"item\" is missing, with no default")
+  }
+  if(missing(newdata)){
+    stop("argument \"newdata\" is missing, with no default")
+  }
+  
   if(!is.data.frame(newdata)){
     stop("X must be of class 'data.frame'")
   }
@@ -64,7 +71,7 @@ function(object, # object of class DIFtree
   }
   n_pred <- nrow(X)
   
-  model <- which(c("Rasch","Logistic") %in% paste(object$call))
+  model <- which(c("Rasch","Logistic")==object$model)
   if(model==1){
     if(is.null(object$splits)){
       params_hat <- rep(object$coefficients$betas_nodif[paste0("beta",item)],n_pred)
@@ -79,7 +86,7 @@ function(object, # object of class DIFtree
     }
   }
   if(model==2){
-    type <- which(c("udif","dif","nudif") %in% paste(object$call))
+    type <- which(c("udif","dif","nudif")==object$type)
     if(type==1){
       if(is.null(object$splits)){
         params_hat <- rep(object$coefficients$gammas_nodif[paste0("gamma",item)],n_pred)

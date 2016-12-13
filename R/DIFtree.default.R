@@ -96,6 +96,8 @@ function(Y,
                     "X"=DM_kov,
                     "persons"=npersons,
                     "items"=nitems,
+                    "model"=model,
+                    "type"=type,
                     "call"=match.call())
                     
   class(to_return) <- "DIFtree"

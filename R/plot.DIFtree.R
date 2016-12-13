@@ -53,13 +53,17 @@ function(x, # object of class DIFtree
                          component="intercept",
                          cex.lines=2,cex.branches=1,cex.coefs=1,cex.main=1,title=NULL,...){
   
+  if(missing(item)){
+    stop("argument \"item\" is missing, with no default")
+  }
+  
   if(is.null(x$splits)){
     cat("There is no plot available in the case of no DIF item")
   } else{
     
     X <- x$X
     
-    model <- which(c("Rasch","Logistic") %in% paste(x$call))
+    model <- which(c("Rasch","Logistic")==x$model)
     if(model==1){
       info     <- x$splits[which(x$splits[,"item"]==item),]
       if(nrow(info)==0){
@@ -72,7 +76,7 @@ function(x, # object of class DIFtree
       }
     }
     if(model==2){
-      type <- which(c("udif","dif","nudif") %in% paste(x$call))
+      type <- which(c("udif","dif","nudif")==x$type)
       if(type==1){
         info     <- x$splits[which(x$splits[,"item"]==item),]
         if(nrow(info)==0){

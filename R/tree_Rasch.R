@@ -294,8 +294,8 @@ function(y,
   # prettify results 
   mod_opt     <- mod_potential[[count]]
   ip_opt      <- ip[[count]]
-  theta_hat   <- c(coef(mod_opt)[1:(npersons-1)],0)
-  beta_hat    <- coef(mod_opt)[npersons:length(coef(mod_opt))]
+  theta_hat   <- c(coefficients(mod_opt)[1:(npersons-1)],0)
+  beta_hat    <- coefficients(mod_opt)[npersons:length(coefficients(mod_opt))]
   
   if(count>1){
     
