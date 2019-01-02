@@ -2,37 +2,40 @@
 #' 
 #' @description
 #' Visualization of trees for items with DIF identified by item focussed recursive partitioning 
-#' based on the Rasch Model or the Logistic Regression Approach for DIF detection.
+#' in dichotomous or polytomous items.
 #' 
 #' @param x Object of class \code{\link[DIFtree]{DIFtree}}
 #' @param item Number of the item, for which the tree shall be plotted 
 #' @param component Component of the model for which the tree shall be plotted; 
-#' can be \code{"intercept"} or \code{"slope"}. For \code{"Rasch"} model only one tree of item difficulties 
+#' can be \code{"intercept"} or \code{"slope"}. For \code{"Rasch"} and \code{"PCM"} only one tree of item parameters
 #' is available for each DIF item and therefore \code{component} will be ignored. 
 #' @param cex.lines Width of branches of the tree
 #' @param cex.branches Size of the labels of branches of the tree 
-#' @param cex.coefs Size of coefficients given in the terminal nodes of the tree
+#' @param cex.coefs Size of coefficients in the terminal nodes of the tree
 #' @param cex.main Size of the title of the tree
 #' @param title Optional title, which is added to the tree;
 #' if \code{title=NULL} the title is the number of the plotted item.
 #' @param ... Further arguments passed to or from other methods
 #' 
-#' @author Moritz Berger <moritz.berger@stat.uni-muenchen.de> \cr \url{http://www.statistik.lmu.de/~mberger/}
+#' @author Moritz Berger <moritz.berger@imbie.uni-bonn.de> \cr \url{http://www.imbie.uni-bonn.de/personen/dr-moritz-berger/}
 #' 
 #' @references 
-#' Berger, Moritz and Tutz, Gerhard (2015): Detection of Uniform and Non-Uniform Differential Item Functioning 
-#' by Item Focussed Trees, Cornell University Library, arXiv:1511.07178
+#' Berger, Moritz and Tutz, Gerhard (2016): Detection of Uniform and Non-Uniform Differential Item Functioning 
+#' by Item Focussed Trees, Journal of Educational and Behavioral Statistics 41(6), 559-592.
 #' 
-#' Tutz, Gerhard and Berger, Moritz (2015): Item Focused Trees for the Identification of Items
-#' in Differential Item Functioning, Psychometrika, published online, DOI: 10.1007/s11336-015-9488-3 
+#' Bollmann, Stella, Berger, Moritz & Tutz, Gerhard (2018): Item-Focussed Trees for the Detection 
+#' of Differential Item Functioning in Partial Credit Models, Educational and Psychological Measurement 78(5), 781-804.
+#' 
+#' Tutz, Gerhard and Berger, Moritz (2016): Item focussed Trees for the Identification of Items
+#' in Differential Item Functioning, Psychometrika 81(3), 727-750. 
 #' 
 #' @seealso \code{\link[DIFtree]{DIFtree}}, \code{\link[DIFtree]{predict.DIFtree}}, \code{\link[DIFtree]{summary.DIFtree}}
 #' 
 #' @examples 
-#' data(data_sim)
+#' data(data_sim_Rasch)
 #'  
-#' Y <- data_sim[,1]
-#' X <- data_sim[,-1]
+#' Y <- data_sim_Rasch[,1]
+#' X <- data_sim_Rasch[,-1]
 #'  
 #' \dontrun{
 #'  
@@ -43,6 +46,8 @@
 #
 #' @method plot DIFtree
 #' @export
+#' @import grid
+#' @import gridBase
 #' @importFrom plotrix draw.ellipse
 #' @importFrom grDevices grey
 #' @importFrom graphics lines plot.new plot.window points rect text 
@@ -63,11 +68,11 @@ function(x, # object of class DIFtree
     
     X <- x$X
     
-    model <- which(c("Rasch","Logistic")==x$model)
+    model <- which(c("Rasch","Logistic","PCM")==x$model)
     if(model==1){
       info     <- x$splits[which(x$splits[,"item"]==item),]
       if(nrow(info)==0){
-        beta_item <- x$betas_nodif[paste0("beta",item)]
+        beta_item <- x$coefficients$betas_nodif[paste0("beta",item)]
         cat("Item", item, "is no DIF item. There is no tree to plot.\n")
         cat("Estimated item difficulty:", beta_item)
       } else{
@@ -153,6 +158,18 @@ function(x, # object of class DIFtree
             ptree(info,item,alphas_item,X,cex.lines,cex.main,cex.branches,cex.coefs,title)
           }
         }
+      }
+    }
+    if(model==3){
+      info     <- x$splits[which(x$splits[,"item"]==item),]
+      if(nrow(info)==0){
+        deltas_item <- x$coefficients$deltas_nodif[,paste0("delta",item)]
+        deltas_item <- paste(round(deltas_item,3), collapse=", ")
+        cat("Item", item, "is no DIF item. There is no tree to plot.\n")
+        cat("Estimated item parameters:", deltas_item)
+      } else{
+        deltas_item <- x$coefficients$deltas_dif[[which(names(x$coefficients$deltas_dif)==item)]]
+        ptree_PCM(info,item,deltas_item,X,cex.lines,cex.main,cex.branches,cex.coefs,title)
       }
     }
   }

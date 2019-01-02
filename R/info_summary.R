@@ -12,7 +12,7 @@ function(splits,
   
   dif <- ifelse(item %in% dif_items,"yes","no")
   if(dif=="yes"){
-    if(model==1 | (model==2 & type==1)){
+    if(model==1 | model==3 | (model==2 & type==1)){
       type      <- "uniform"
       variables <- paste(unique(splits[splits[,"item"]==item,"variable"]),collapse=",")
       nos    <- nrow(splits[splits[,"item"]==item,])

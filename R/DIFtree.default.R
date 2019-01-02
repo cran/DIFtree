@@ -3,7 +3,7 @@
 DIFtree.default <-
 function(Y,
                             X,
-                            model=c("Rasch","Logistic"),
+                            model=c("Rasch","Logistic","PCM"),
                             type=c("udif","dif","nudif"),
                             alpha=0.05,
                             nperm=1000,
@@ -23,8 +23,15 @@ function(Y,
   type  <- match.arg(type)
   
   # varify input 
-  if(!all(as.vector(t(Y)) %in% c(0,1))){
-    stop("Y must be a binary 0/1 matrix")
+  if(model!="PCM"){
+    if(!all(as.vector(t(Y)) %in% c(0,1))){
+      stop("Y must be a binary 0/1 matrix")
+    }
+  }
+  if(model=="PCM"){
+    if(!all(as.vector(t(Y))-round(as.vector(t(Y)))==0)){
+      stop("Y must be a matrix containing integer values")
+    }
   }
   if(!is.data.frame(X)){
     stop("X must be of class 'data.frame'")
@@ -85,6 +92,12 @@ function(Y,
                            "alphas_dif"=output$alphas_dif,
                            "alphas_nodif"=output$alphas_nodif)
     }
+  }
+  if(model=="PCM"){
+    output <- tree_PCM(y,DM_kov,npersons,nitems,nvar,ordered_values,n_levels,n_s,alpha,nperm,trace)
+    coefficients <- list("thetas"=output$thetas,
+                         "deltas_dif"=output$deltas_dif,
+                         "deltas_nodif"=output$deltas_nodif)
   }
   
   to_return <- list("splits"=output$splits,

@@ -2,8 +2,7 @@
 #' 
 #' @description
 #' The function returns predictions of item parameters 
-#' obtained by item focussed recursive partitioning based on the Rasch Model or the 
-#' Logistic Regression Approach for DIF detection.  
+#' obtained by item focussed recursive partitioning in dichotomous or polytomous items.
 #' 
 #' @param object Object of class \code{\link[DIFtree]{DIFtree}}
 #' @param item Number of the item, for which the prediction shall be returned
@@ -13,23 +12,27 @@
 #' @details
 #' For \code{"Rasch"} model the function returns the predicted item difficulty. 
 #' For \code{"Logistic"} models the function returns the predicted intercept and/or slope.  
+#' For \code{"PCM"} the function returns the predicted threshold parameters. 
 #' 
-#' @author Moritz Berger <moritz.berger@stat.uni-muenchen.de> \cr \url{http://www.statistik.lmu.de/~mberger/}
+#' @author Moritz Berger <moritz.berger@imbie.uni-bonn.de> \cr \url{http://www.imbie.uni-bonn.de/personen/dr-moritz-berger/}
 #' 
 #' @references 
-#' Berger, Moritz and Tutz, Gerhard (2015): Detection of Uniform and Non-Uniform Differential Item Functioning 
-#' by Item Focussed Trees, Cornell University Library, arXiv:1511.07178
+#' Berger, Moritz and Tutz, Gerhard (2016): Detection of Uniform and Non-Uniform Differential Item Functioning 
+#' by Item Focussed Trees, Journal of Educational and Behavioral Statistics 41(6), 559-592.
 #' 
-#' Tutz, Gerhard and Berger, Moritz (2015): Item Focused Trees for the Identification of Items
-#' in Differential Item Functioning, Psychometrika, published online, DOI: 10.1007/s11336-015-9488-3 
+#' Bollmann, Stella, Berger, Moritz & Tutz, Gerhard (2018): Item-Focussed Trees for the Detection 
+#' of Differential Item Functioning in Partial Credit Models, Educational and Psychological Measurement 78(5), 781-804.
+#' 
+#' Tutz, Gerhard and Berger, Moritz (2016): Item focussed Trees for the Identification of Items
+#' in Differential Item Functioning, Psychometrika 81(3), 727-750.
 #' 
 #' @seealso \code{\link[DIFtree]{DIFtree}}, \code{\link[DIFtree]{plot.DIFtree}}, \code{\link[DIFtree]{summary.DIFtree}}
 #' 
 #' @examples 
-#' data(data_sim)
+#' data(data_sim_Rasch)
 #'  
-#' Y <- data_sim[,1]
-#' X <- data_sim[,-1]
+#' Y <- data_sim_Rasch[,1]
+#' X <- data_sim_Rasch[,-1]
 #' 
 #' Xnew <- data.frame("x1"=c(0,1),"x2"=c(-1.1,2.5),"x3"=c(1,0),"x4"=c(-0.2,0.7))
 #'  
@@ -71,7 +74,7 @@ function(object, # object of class DIFtree
   }
   n_pred <- nrow(X)
   
-  model <- which(c("Rasch","Logistic")==object$model)
+  model <- which(c("Rasch","Logistic","PCM")==object$model)
   if(model==1){
     if(is.null(object$splits)){
       params_hat <- rep(object$coefficients$betas_nodif[paste0("beta",item)],n_pred)
@@ -143,6 +146,23 @@ function(object, # object of class DIFtree
         }
       }
     }
+  }
+  if(model==3){
+    nthres <- nrow(object$coefficients$deltas_nodif)
+    if(is.null(object$splits)){
+      params_hat <- matrix(rep(object$coefficients$deltas_nodif[,paste0("delta",item)],n_pred), ncol=nthres, byrow=TRUE)
+    } else{
+      info <- object$splits[object$splits[,"item"]==item,]
+      if(nrow(info)==0){
+        params_hat <- matrix(rep(object$coefficients$deltas_nodif[,paste0("delta",item)],n_pred), ncol=nthres, byrow=TRUE)
+      } else{
+        params <- object$coefficients$deltas_dif[[paste(item)]]
+        params <- matrix(params, nrow=nthres)
+        colnames(params) <- get_endnodes(info)
+        params_hat <- matrix(apply(params, 1 , function(z) whole_prediction(info,item,z,X)), ncol=nthres)
+      }
+    }
+    colnames(params_hat) <- c(1:nthres)
   }
   return(params_hat)
   

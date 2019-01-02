@@ -1,19 +1,17 @@
 Package: DIFtree
 Type: Package
-Title: Item Focused Trees for the Identification of Items in
+Title: Item Focussed Trees for the Identification of Items in
         Differential Item Functioning
-Version: 2.1.4
-Date: 2016-12-13
+Version: 3.1.4
+Date: 2019-01-02
 Author: Moritz Berger
-Depends: penalized, plotrix
-Maintainer: Moritz Berger <moritz.berger@stat.uni-muenchen.de>
-Description: Item focused recursive partitioning for simultaneous selection of
-    items and variables that induce Differential Item Functioning (DIF) based on the
-    Rasch Model or the Logistic Regression Approach for DIF detection.
+Depends: penalized, VGAM, grid, gridBase, plotrix
+Maintainer: Moritz Berger <moritz.berger@imbie.uni-bonn.de>
+Description: Item focussed recursive partitioning for simultaneous selection of items and variables that induce Differential Item Functioning (DIF) in dichotomous or polytomous items. 
 License: GPL-2
 LazyLoad: yes
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 NeedsCompilation: no
-Packaged: 2016-12-13 14:17:35 UTC; bergerm
+Packaged: 2019-01-02 14:12:41 UTC; berger
 Repository: CRAN
-Date/Publication: 2016-12-13 19:52:28
+Date/Publication: 2019-01-02 14:40:13 UTC
