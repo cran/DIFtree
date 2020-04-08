@@ -5,9 +5,9 @@
 \alias{print.DIFtree}
 \title{Item focussed Trees for the Identification of Items in Differential Item Functioning}
 \usage{
-DIFtree(Y, X, model = c("Rasch", "Logistic", "PCM"), type = c("udif", "dif",
-  "nudif"), alpha = 0.05, nperm = 1000, trace = FALSE, penalize = FALSE,
-  ...)
+DIFtree(Y, X, model = c("Rasch", "Logistic", "PCM"), type = c("udif",
+  "dif", "nudif"), alpha = 0.05, nperm = 1000, trace = FALSE,
+  penalize = FALSE, ...)
 
 \method{print}{DIFtree}(x, ...)
 }

@@ -217,7 +217,6 @@ tree_PCM <-
         
         ######################
         if(level>1){
-          source("lu.R")
           help_kn4 <- lu(c(),1,level-1,c())
           help_kn5 <- unlist(strsplit(help_kn2,""))
           help_kn6 <- paste0(help_kn5[which(help_kn5=="_")+1],collapse="")
