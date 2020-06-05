@@ -98,7 +98,6 @@
 #' }
 #' 
 #
-#' @exportClass DIFtree
 #' @export
 #' @importFrom penalized penalized 
 #' @importFrom VGAM vglm acat

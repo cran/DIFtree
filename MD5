@@ -1,6 +1,6 @@
-6b075f9f1474a6b7816c8fa086eb7839 *DESCRIPTION
-c4bda7e2c281e1837531c5f0d5fc7799 *NAMESPACE
-a55a1c4ec2a5a69f56fe7fd160988ae4 *R/DIFtree.R
+d20b4c2313af78237ba65171f0fdaac1 *DESCRIPTION
+fd495bfc14d434a91c8695f259fd76d7 *NAMESPACE
+d98d4919aaef013bbfddd3356757fca1 *R/DIFtree.R
 6645d38a6ff5e5140c521156b761127e *R/DIFtree.default.R
 0a7beca69b656fbc5ac514ab9c86348f *R/data_sim_PCM.R
 14d2bdca9d44d772a7e0b8bbb64844e0 *R/data_sim_Rasch.R
@@ -15,7 +15,7 @@ bc38a763765a7759534af992abb25816 *R/infos_summary.R
 8fe0ce1169d16344df2dde2a3d4fd5d2 *R/prepareX.R
 650257b15f4ceefd6176388acba9698e *R/ptree.R
 db367aa11a3bb8b76b3538f6d484e0c3 *R/ptree_PCM.R
-4fe53237764614bb6bda38a2b9bfb2a4 *R/summary.DIFtree.R
+46f23f194d030b35e7747ca34d3ea2bf *R/summary.DIFtree.R
 3931cf53018f652e733ecd398651929d *R/tree_Logistic.R
 cc92bed0d07243c670e74ea3490bc86f *R/tree_PCM.R
 41b1afbc0f6ffb6402df87ee6deea7ae *R/tree_Rasch.R

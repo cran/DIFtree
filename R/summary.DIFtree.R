@@ -43,7 +43,6 @@
 #' 
 #
 #' @method summary DIFtree
-#' @exportClass summary.DIFtree 
 #' @export
 
 summary.DIFtree <-
